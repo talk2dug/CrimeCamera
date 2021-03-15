@@ -21,17 +21,13 @@ var driveMounted
 function checkDriveMounting(){
     const { spawn } = require("child_process");
     d.getDrives(function(err, aDrives) {
-            
         for (var i = 0; i < aDrives.length; i++) {
             if(aDrives[i].filesystem==="/dev/sda1"){
                 driveMounted = 1;
-              
           }
           else{
               driveMounted = 0;}
-    
           }
-        
     });
     if(driveMounted === 1){
         
@@ -40,27 +36,19 @@ function checkDriveMounting(){
       //
         const ls = spawn("mount", ["/dev/sda1", "/home/pi/CrimeCamera/public/videos/"]);
         ls.stdout.on("data", data => {
-            
             driveMounted = 1;
         });
-        
         ls.stderr.on("data", data => {
             console.log(`stderr: ${data}`);
-            
             driveMounted = 0;
         });
-        
         ls.on('error', (error) => {
             console.log(`error: ${error.message}`);
         });
-        
         ls.on("close", code => {
             console.log(`child process exited with code ${code}`);
-            
-        });
-                     
+        });         
     }
-
 }
 
 
@@ -81,8 +69,8 @@ function Startrecording(){
   }
 
   var systemInfo = {
-    "name":"CrimeCamera2",
-    'id': 'ertsdfj',
+    "name":"CrimeCamera001",
+    'id': 'biasfbbvias',
     "ip":"192.168.196.89",
     "numOfCams":1,
     "typs":"PTZ",
