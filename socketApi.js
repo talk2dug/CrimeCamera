@@ -38,7 +38,7 @@ function checkDriveMounting(){
     }
     else{
       //
-        const ls = spawn("mount", ["/dev/sdb1", "/home/pi/PTZAudio/public/videos/"]);
+        const ls = spawn("mount", ["/dev/sda1", "/home/pi/CrimeCamera/public/videos/"]);
         ls.stdout.on("data", data => {
             
             driveMounted = 1;
@@ -69,7 +69,7 @@ function Startrecording(){
           "-hide_banner","-loglevel", "panic",
           "-i", "rtsp://admin:UUnv9njxg123@10.10.5.2:554/cam/realmonitor?channel=1&subtype=0",
            "-vcodec",  "copy",  "-f", "segment", "-strftime", "1", 
-           "-segment_time", "900", "-segment_format", "mp4", "/home/pi/PTZAudio/public/videos/cam1/%Y-%m-%d_%H-%M.mp4"
+           "-segment_time", "900", "-segment_format", "mp4", "/home/pi/CrimeCamera/public/videos/cam1/%Y-%m-%d_%H-%M.mp4"
       ]);
       child.stdout.on('data', (data) => {
         sendVideoFiles()
@@ -83,7 +83,7 @@ function Startrecording(){
   var systemInfo = {
     "name":"CrimeCamera2",
     'id': 'ertsdfj',
-    "ip":"192.168.196.113",
+    "ip":"192.168.196.89",
     "numOfCams":1,
     "typs":"PTZ",
     'sysInfo':{
@@ -114,7 +114,7 @@ function sendVideoandData() {
     var y;
     var videoFiles = []
     var ffmpeg = require('fluent-ffmpeg');
-    exec('ls /home/pi/PTZAudio/public/videos/cam1' , function(error, stdout, stderr) {
+    exec('ls /home/pi/CrimeCamera/public/videos/cam1' , function(error, stdout, stderr) {
       if (error){
         console.log(error)
       }
@@ -126,7 +126,7 @@ function sendVideoandData() {
             for(y=0;y<newStringArray.length;y++){
                 if(newStringArray[y]){
                     console.log(newStringArray[y])
-                    ffmpeg.ffprobe('/home/pi/PTZAudio/public/videos/cam1/'+newStringArray[y],function(err, metadata) {
+                    ffmpeg.ffprobe('/home/pi/CrimeCamera/public/videos/cam1/'+newStringArray[y],function(err, metadata) {
                         //console.log(metadata);
                         var videoandData = {"fileName":newStringArray[y],"metaData":metadata}
                         videoFiles.push(videoandData)
@@ -161,7 +161,7 @@ function sendVideoInfo(file){
     }
 function sendVideoFiles(){
     var videoFiles = []
-    exec('ls /home/pi/PTZAudio/public/videos/cam1' , function(error, stdout, stderr) {
+    exec('ls /home/pi/CrimeCamera/public/videos/cam1' , function(error, stdout, stderr) {
       if (error){
         console.log(error)
       }
@@ -191,7 +191,7 @@ Startrecording();
         }
     })
     socket2.on('getVideoInfo', function(data){
-        var fileURI = "/home/pi/PTZAudio/public/videos/cam1/"+data
+        var fileURI = "/home/pi/CrimeCamera/public/videos/cam1/"+data
         sendVideoInfo(fileURI)
     })
     socket2.on('recording', function(data) {

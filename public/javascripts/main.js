@@ -26,7 +26,7 @@ var soundBackDiff = 0;
 var panspeed = 4;
 const Http = new XMLHttpRequest();
 var socket = io();
-var mainServer = io('//192.168.196.113:3000/');
+var mainServer = io('//192.168.196.89:3000/');
 //
 var mainLayOutHTML = "<div class='container mainContainer'>"+
                         "<div class='row'>"+
@@ -35,7 +35,7 @@ var mainLayOutHTML = "<div class='container mainContainer'>"+
                         "</div>"+
                         "<div class='row'>"+
                           "<div class='col-md-8 customBox videoBox'>"+
-                            "<img id='liveVideo' src='http://192.168.196.113:8081/'></img>"+
+                            "<img id='liveVideo' src='http://192.168.196.89:8081/'></img>"+
                           "</div>"+
                           "<div class='col-6 col-md-3 customBox videoSide'>"+
                             "<h4>Sound Levels</h4>"+
