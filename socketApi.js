@@ -30,7 +30,7 @@ function checkDriveMounting(){
           }
     });
     if(driveMounted === 1){
-        
+
     }
     else{
       //
@@ -53,11 +53,13 @@ function checkDriveMounting(){
 
 
 function Startrecording(){
+
+    var currentDateTime = moment().format("YYYY-MM-DD_HH-mm")
        child = spawn("ffmpeg", [
           "-hide_banner","-loglevel", "panic",
           "-i", "rtsp://admin:UUnv9njxg123@10.10.5.2:554/cam/realmonitor?channel=1&subtype=0",
            "-vcodec",  "copy",  "-f", "segment", "-strftime", "1", 
-           "-segment_time", "900", "-segment_format", "mp4", "/home/pi/CrimeCamera/public/videos/cam1/%Y-%m-%d_%H-%M.mp4"
+           "-segment_time", "600", "-segment_format", "mp4", "/home/pi/CrimeCamera/public/videos/cam1/%Y-%m-%d_%H-%M.mp4"
       ]);
       child.stdout.on('data', (data) => {
         sendVideoFiles()
