@@ -4,6 +4,7 @@ var io = socket_io();
 var socketApi = {};
 socketApi.io = io;
 const dreamHost = require("socket.io-client");
+const si = require('systeminformation');
 //
 var sendData = 0;
 var panspeed = 4;
@@ -17,6 +18,92 @@ var spawn = require('child_process').spawn,
 child = null;
 var d = require('diskinfo');
 var driveMounted
+var sysInfo = {'diskLayout':[],
+'fsSize':[],
+'osInfo':{},
+
+
+
+}
+var systemInfo = {
+    "name":"CrimeCamera001",
+    'id': 'biasfbbvias',
+    "ip":"192.168.196.89",
+    "numOfCams":1,
+    "typs":"PTZ",
+    'sysInfo':sysInfo,
+      'location':{'lat': 38.85456, 'lng':  -77.735076},
+
+
+
+}
+var perfmonPacket = {
+camera:'CrimeCamera001',
+'currentLoad':{
+    'cpus':[]},
+  'mem':{},
+    'cpuTemperature':{},
+   
+}
+
+si.diskLayout(function(data) {
+    for(var i=0;i<data.length;i++){
+        sysInfo.diskLayout.push({
+        'device':data[i].device,
+        'type':data[i].type,
+        'type':data[i].name,
+        'vendor':data[i].vendor,
+        'size':data[i].size
+
+        })
+    }
+  })
+si.fsSize(function(data) {
+    for(var i=0;i<data.length;i++){
+        sysInfo.fsSize.push({
+            'fs':data[i].fs,
+            'type':data[i].type,
+            'size': data[i].size,
+            'used': data[i].used,
+            'available': data[i].available,
+            'mount': data[i].mount
+        })
+        
+    }
+    
+  })
+
+si.osInfo(function(data) {
+    sysInfo.osInfo.distro = data.distro
+    sysInfo.osInfo.release = data.release
+    sysInfo.osInfo.codename = data.codename
+    sysInfo.osInfo.kernel = data.kernel
+    sysInfo.osInfo.arch = data.arch
+    sysInfo.osInfo.hostname = data.hostname
+    sysInfo.osInfo.fqdn = data.fqdn
+})
+
+  
+
+
+
+si.memLayout(function(data) {
+    sysInfo.memLayout = data
+    console.log('Memory Available:');
+    console.log(data[0].size);
+  })
+
+si.cpu(function(data) {
+    console.log('CPU Information:');
+    sysInfo.cpu = data
+    console.log(data.speed)
+    console.log(data.cores)
+    console.log(data.brand);
+  })
+
+// promises style - new since version 3
+
+
 
 function checkDriveMounting(){
     const { spawn } = require("child_process");
@@ -39,14 +126,14 @@ function checkDriveMounting(){
             driveMounted = 1;
         });
         ls.stderr.on("data", data => {
-            console.log(`stderr: ${data}`);
+            //console.log(`stderr: ${data}`);
             driveMounted = 0;
         });
         ls.on('error', (error) => {
             console.log(`error: ${error.message}`);
         });
         ls.on("close", code => {
-            console.log(`child process exited with code ${code}`);
+            //console.log(`child process exited with code ${code}`);
         });         
     }
 }
@@ -62,7 +149,7 @@ function Startrecording(){
            "-segment_time", "600", "-segment_format", "mp4", "/home/pi/CrimeCamera/public/videos/cam1/%Y-%m-%d_%H-%M.mp4"
       ]);
       child.stdout.on('data', (data) => {
-        sendVideoFiles()
+        //sendVideoFiles()
         console.log(`stdout: ${data}`);
     });
     child.stderr.on('data', (data) => {
@@ -70,32 +157,42 @@ function Startrecording(){
     });
   }
 
-  var systemInfo = {
-    "name":"CrimeCamera001",
-    'id': 'biasfbbvias',
-    "ip":"192.168.196.89",
-    "numOfCams":1,
-    "typs":"PTZ",
-    'sysInfo':{
-        'DriveSpaceTB':2,
-        'boardType': 'Pi4',
-        'ramGB':4,
-      },
-      'location':{'lat': 38.85456, 'lng':  -77.735076},
 
-
-
-}
 
 var socket2 = dreamHost('http://192.168.196.123:3001/cameras', { autoConnect: true});
 
 function intervalFunc() {
+    
     socket2.emit('systemOnline',systemInfo)
   }
   
-  setInterval(intervalFunc, 30000);
-
+  setInterval(intervalFunc, 10000);
+ 
+  function intervalFunc2() {
+    si.cpuTemperature(function(data) {
+        perfmonPacket['cpuTemperature'].main = data.main
+      })
+    si.mem(function(data) {
+        perfmonPacket['mem']['total']=data.total
+        perfmonPacket['mem']['free']=data.free
+        perfmonPacket['mem']['used']=data.used
+        perfmonPacket['mem']['available']=data.available
+      })
+    si.currentLoad(function(data) {
+        perfmonPacket.currentLoad.cpus = []
+        perfmonPacket.currentLoad.avgLoad=data.avgLoad
+        perfmonPacket.currentLoad.currentLoad=data.currentLoad
+        perfmonPacket.currentLoad.currentLoadUser=data.currentLoadUser
+        for(var i=0;i<data.cpus.length;i++){
+            console.log(data.cpus[i].load);
+            perfmonPacket.currentLoad.cpus.push(data.cpus[i].load)  
+        }
+      })
+    socket2.emit('perfmonStats',perfmonPacket)
     
+  }
+  
+  setInterval(intervalFunc2, 30000);   
 socket2.on("hi", function(data){
     console.log("HHHHIII")
    
@@ -112,16 +209,16 @@ function sendVideoandData() {
           var newStringArray = stdout.split("\n")
           console.log("number of videos:  " + newStringArray.length)
           //newStringArray = toString(newStringArray)
-            console.log(newStringArray.length)
+            //console.log(newStringArray.length)
             for(y=0;y<newStringArray.length;y++){
                 if(newStringArray[y]){
-                    console.log(newStringArray[y])
+                    //console.log(newStringArray[y])
                     ffmpeg.ffprobe('/home/pi/CrimeCamera/public/videos/cam1/'+newStringArray[y],function(err, metadata) {
                         //console.log(metadata);
                         var videoandData = {"fileName":newStringArray[y],"metaData":metadata}
                         videoFiles.push(videoandData)
                         socket2.emit("videoFileData",metadata )
-                        console.log(videoFiles.length + " : " + newStringArray.length)
+                        //console.log(videoFiles.length + " : " + newStringArray.length)
                         var numOfVideos = videoFiles.length + 1
                         if(numOfVideos===newStringArray.length){
                             console.log("done")
@@ -151,6 +248,7 @@ function sendVideoInfo(file){
     }
 function sendVideoFiles(){
     var videoFiles = []
+    console.log("Sending Videos")
     exec('ls /home/pi/CrimeCamera/public/videos/cam1' , function(error, stdout, stderr) {
       if (error){
         console.log(error)
@@ -158,11 +256,12 @@ function sendVideoFiles(){
       if (!error){
           var newStringArray = stdout.split("\n")
           //newStringArray = toString(newStringArray)
-            console.log(newStringArray.length)
+            //console.log(newStringArray.length)
             for(y=0;y<newStringArray.length;y++){
                 if(newStringArray[y]){
-                    console.log(newStringArray[y])
+                    //console.log(newStringArray[y])
                     videoFiles.push(newStringArray[y])
+                    //console.log(videoFiles)
                 }
                 if(y == newStringArray.length - 1){
                     socket2.emit("videoFile",videoFiles )
@@ -185,7 +284,7 @@ Startrecording();
         sendVideoInfo(fileURI)
     })
     socket2.on('recording', function(data) {
-        console.log(data)
+        //console.log(data)
         if(data==="start"){
             Startrecording();
         }
